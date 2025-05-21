@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+config/config.yaml
+config/
+# Virtual environments
+.venv
+.venv/
+
+docs/
+# Ignore all files in the docs directory
+docs/*
+
