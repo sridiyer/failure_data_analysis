@@ -21,9 +21,10 @@ class BigQueryConnector:
     
     def __init__(
         self,
-        project_id: str,
-        dataset: str,
-        credentials_path: Optional[str] = None
+        project_id: str = "sp-prod-mlops",
+        dataset: str = "jindal_raw_data",
+        table: str = "tb_twc_data",
+        credentials_path: Optional[str] = "config/bigquery_service_account.json"
     ):
         """
         Initialize the BigQuery connector.
@@ -35,11 +36,12 @@ class BigQueryConnector:
         """
         self.project_id = project_id
         self.dataset = dataset
-        
+        self.table = table
         logger.info(f"Initializing BigQuery connector for {dataset} in {project_id}")
-        
+       
         try:
             # Set up credentials and client
+            print (credentials_path)
             if credentials_path:
                 credentials = service_account.Credentials.from_service_account_file(
                     credentials_path,
@@ -135,7 +137,7 @@ class BigQueryConnector:
                 '{failure_id}' AS failure_id,
                 TIMESTAMP_DIFF(timestamp, TIMESTAMP('{failure_time.strftime('%Y-%m-%d %H:%M:%S')}'), SECOND) AS seconds_from_failure
             FROM
-                `{self.project_id}.{self.dataset}.sensor_readings`
+                `{self.project_id}.{self.dataset}.{self.table}`
             WHERE
                 sensor_id IN ({sensors_str})
                 AND timestamp BETWEEN TIMESTAMP('{start_time_str}') AND TIMESTAMP('{end_time_str}')

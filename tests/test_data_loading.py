@@ -1,100 +1,88 @@
 import pytest
 import asyncio
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Any
 from datetime import datetime
 import os
+import yaml
+from pathlib import Path
 from dotenv import load_dotenv
 
+import sys
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+from src.data.postgres_connector import PostgresConnector
 # Load environment variables
 load_dotenv()
 
-# Test database configuration
-TEST_DB_CONFIG = {
-    "host": os.getenv("POSTGRES_HOST", "localhost"),
-    "port": int(os.getenv("POSTGRES_PORT", "5432")),
-    "database": os.getenv("POSTGRES_DB", "test_db"),
-    "user": os.getenv("POSTGRES_USER", "test_user"),
-    "password": os.getenv("POSTGRES_PASSWORD", "test_password")
-}
+def load_config() -> dict:
+    """Load configuration from YAML file."""
+    print(Path(__file__).parent.parent)
+    config_path = Path(__file__).parent.parent / "src" / "config" / "config.yaml"
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+# Load database configuration from config file
+config = load_config()
+TEST_DB_CONFIG = config["databases"]["input_postgres"]
+print("Database Configuration:")
+print("-" * 80)
+for key, value in TEST_DB_CONFIG.items():
+    print(f"{key}: {value}")
+print("-" * 80)
 
-@pytest.fixture(scope="session")
-async def db_connection():
-    """Create a database connection for testing."""
-    from src.data.postgres_connector import PostgresConnector
+test_connector = PostgresConnector(TEST_DB_CONFIG)
+
+async def main():
+    global test_connector
     
-    connector = PostgresConnector(TEST_DB_CONFIG)
-    await connector.connect()
-    yield connector
-    await connector.disconnect()
-
-@pytest.mark.asyncio
-async def test_connection(db_connection):
-    """Test if we can establish a connection to the database."""
-    assert db_connection.is_connected() is True
-
-@pytest.mark.asyncio
-async def test_read_failure_data(db_connection):
-    """Test reading failure data from the database."""
-    query = """
-    SELECT * FROM failure_data 
-    WHERE timestamp >= NOW() - INTERVAL '1 day'
-    LIMIT 10
-    """
-    result = await db_connection.execute_query(query)
-    assert isinstance(result, list)
-    if result:
-        assert all(isinstance(row, dict) for row in result)
-
-@pytest.mark.asyncio
-async def test_read_sensor_data(db_connection):
-    """Test reading sensor data from the database."""
-    query = """
-    SELECT * FROM sensor_data 
-    WHERE timestamp >= NOW() - INTERVAL '1 hour'
-    LIMIT 100
-    """
-    result = await db_connection.execute_query(query)
-    assert isinstance(result, list)
-    if result:
-        assert all(isinstance(row, dict) for row in result)
-
-@pytest.mark.asyncio
-async def test_read_with_parameters(db_connection):
-    """Test reading data with parameterized query."""
-    query = """
-    SELECT * FROM failure_data 
-    WHERE machine_id = $1 
-    AND timestamp >= $2
-    LIMIT 5
-    """
-    params = ("MACHINE_001", datetime.now().isoformat())
-    result = await db_connection.execute_query(query, params)
-    assert isinstance(result, list)
-
-@pytest.mark.asyncio
-async def test_error_handling(db_connection):
-    """Test error handling for invalid queries."""
-    with pytest.raises(Exception):
-        await db_connection.execute_query("SELECT * FROM non_existent_table")
-
-@pytest.mark.asyncio
-async def test_connection_pool(db_connection):
-    """Test connection pool functionality."""
-    # Execute multiple queries concurrently
-    queries = [
-        "SELECT COUNT(*) FROM failure_data",
-        "SELECT COUNT(*) FROM sensor_data",
-        "SELECT COUNT(*) FROM machine_data"
-    ]
+    # First, ensure we're disconnected and pool is closed
+    print("\nClosing existing connections and pool...")
+    await test_connector.disconnect()
+    print("Existing connections closed")
     
-    tasks = [db_connection.execute_query(query) for query in queries]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    # Wait a moment to ensure connections are fully closed
+    await asyncio.sleep(1)
     
-    assert all(not isinstance(result, Exception) for result in results) 
+    print("\nAttempting to connect to database...")
+    connection_result = await test_connector.connect()
+    print(f"Connection result: {connection_result}")
+    print(f"Connection status: {test_connector.is_connected()}")
+    
+    if test_connector.is_connected():
+        print("Connected to database")
+        
+        # Execute the query
+        query = """
+        SELECT sr, section, last_occurrence_date, date, datetime_from, datetime_to, delay_minutes, equipment, problem_description, restart_steps, one_year, two_year, three_year, four_year, five_year, corrective_action, preventive_action, responsibility, target_date, status, actual_action_taken
+        FROM public."CAPA_2023_2024" WHERE date = '2024-05-21 00:00:00';
+        """
+        
+        try:
+            results = await test_connector.execute_query(query)
+            print("\nQuery Results:")
+            print("-" * 80)
+            for row in results:
+                print(f"SR: {row.get('sr')}")
+                print(f"Section: {row.get('section')}")
+                print(f"Equipment: {row.get('equipment')}")
+                print(f"Problem Description: {row.get('problem_description')}")
+                print(f"Status: {row.get('status')}")
+                print("-" * 80)
+            
+            print(f"\nTotal records found: {len(results)}")
+            
+        except Exception as e:
+            print(f"Error executing query: {str(e)}")
+        finally:
+            print("\nClosing connection and pool...")
+            await test_connector.disconnect()
+            print("Disconnected from database")
+    else:
+        print("Failed to connect to database")
+
+# Run the async main function
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
