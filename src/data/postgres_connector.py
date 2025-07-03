@@ -131,7 +131,7 @@ class PostgresConnector:
             logger.error(f"Error executing batch operation: {str(e)}")
             raise
 
-    def execute_query_to_df(self, query: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
+    async def execute_query_to_df(self, query: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
         """
         Execute a SQL query and return results as a pandas DataFrame.
         
@@ -142,9 +142,34 @@ class PostgresConnector:
         Returns:
             DataFrame with query results
         """
-        results = self.execute_query(query, params)
-        return pd.DataFrame(results) if results else pd.DataFrame()
-    
+        if not self.pool:
+            raise ConnectionError("Database connection not established")
+
+        try:
+            async with self.pool.acquire() as connection:
+                if params:
+                    # Convert params dict to tuple for asyncpg
+                    param_values = tuple(params.values())
+                    result = await connection.fetch(query, *param_values)
+                else:
+                    result = await connection.fetch(query)
+                
+                # Convert asyncpg.Record objects to dictionaries
+                records = [dict(row) for row in result]
+                
+                # Create DataFrame from list of dictionaries
+                if records:
+                    df = pd.DataFrame(records)
+                    logger.info(f"Retrieved {len(df)} records")
+                    return df
+                else:
+                    logger.info("No records found")
+                    return pd.DataFrame()
+                    
+        except Exception as e:
+            logger.error(f"Error executing query: {str(e)}")
+            raise
+
     def fetch_failure_data(self) -> pd.DataFrame:
         """
         Fetch failure data from the database.

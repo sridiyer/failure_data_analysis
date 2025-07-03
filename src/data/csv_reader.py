@@ -45,6 +45,7 @@ def load_csv_data(file_path: Union[str, Path]) -> pd.DataFrame:
         logger.info(f"Loaded CSV with {df.shape[0]} rows and {df.shape[1]} columns")
         logger.debug(f"CSV columns: {', '.join(df.columns)}")
         
+        """
         # Check for required columns
         required_columns = ["failure_id", "timestamp", "description"]
         missing_columns = [col for col in required_columns if col not in df.columns]
@@ -59,7 +60,7 @@ def load_csv_data(file_path: Union[str, Path]) -> pd.DataFrame:
                 logger.debug("Converted timestamp column to datetime")
             except Exception as e:
                 logger.warning(f"Failed to convert timestamp to datetime: {str(e)}")
-        
+        """
         return df
         
     except pd.errors.EmptyDataError:

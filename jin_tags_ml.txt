@@ -1,0 +1,2 @@
+['braking_trigger_point', 'set_linear_speed', 'actual_linear_speed', 'torque_limit_pct', 'actual_torque_pct', 'motor_current', 'bar_head_position', 'bar_tail_position', 'tail_pos', 'rolls_close_cmd', 'high_press_close', 'overspeed_sel', 'reduced_overspeed_sel', 'tail_speed_sel', 'braking_speed_sel', 'limited_torque', 'close_pressure', 'tail_speed_inout_tb', 'tail_head_detach', 'tail_after_shear_tb_line', 'wr_safety_time', 'actual_speed', 'speed_ref', 'rolls_close_solvalve_2', 'high_press_close_solvalve_2', 'selection_valve_1', 'selection_valve_2', 'billet_size']
+
