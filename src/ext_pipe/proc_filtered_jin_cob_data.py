@@ -159,8 +159,8 @@ async def process_filterd_cobble_data():
         
         for index, row in cobble_incidents_df.iterrows():
             # filter events
-            # if index < 152:
-            #     continue
+            if index < 11:
+                continue
             print(f"Processing row {index}  ------")
             ev_date = str(row['event_date'])
             ev_start_time = str(row['event_start_time'])
@@ -191,8 +191,8 @@ async def process_filterd_cobble_data():
             ev_tags_rationale_two = gem_response.get('tags_rationale_two', '')
             ev_user_summary_one = ev_delay_data
             ev_user_summary_two = ev_capa_data
-            ev_source_name = "DELAY_AND_CAPA"
-            ev_source_type = "BK_FILTERED_DATA"
+            ev_source_name = "DELAY_WITH_CAPA"
+            ev_source_type = "BK_FILTERED"
             ev_contributor_tags = []
             ev_search_key_words = []
             ev_proc_flag = 0

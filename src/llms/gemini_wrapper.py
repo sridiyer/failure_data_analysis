@@ -34,7 +34,7 @@ def extract_jinal_capa_tags(capa_notes1: str) -> dict:
     Extract tags from notes1 and notes2.
     """
     
-    prompt = JINDAL_CAPA_TAGS_EXTRACTION_PROMPT
+    prompt = JINDAL_TRIAGE_TAGS_EXTRACTION_PROMPT
     prompt = prompt.format(data_from_capa_file=capa_notes1)
     try:
         response = invoke_gemini_for_extraction(prompt)
