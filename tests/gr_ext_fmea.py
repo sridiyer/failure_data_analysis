@@ -85,7 +85,7 @@ def bottom_feedback_bar ():
 
 with gr.Blocks() as demo:
     
-    with gr.Accordion(gr.Markdown("Search Options : By Date, Anomaly ID, Failure Mode, Component, Sub-Component")):
+    with gr.Accordion("Search Options : By Date, Anomaly ID, Failure Mode, Component, Sub-Component"):
         with gr.Row():
             with gr.Column(scale=8):
                 with gr.Row():
