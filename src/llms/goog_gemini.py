@@ -1,4 +1,6 @@
 import json
+import os
+from dotenv import load_dotenv
 from google import genai
 from google.genai.types import (
     FunctionDeclaration,
@@ -12,10 +14,16 @@ from google.genai.types import (
     ToolCodeExecution,
 )
 
+# Load environment variables
+load_dotenv()
+
 # safety filters etc: https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/getting-started/intro_gemini_2_5_pro.ipynb
 
 MODEL_ID = "gemini-2.5-pro-preview-05-06"    
-GOOG_API_KEY = "AIzaSyArgqH_6faTGp8xleh4S8LGwVLpqjjTDRc"
+GOOG_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+if not GOOG_API_KEY:
+    raise ValueError("GOOGLE_API_KEY environment variable is not set")
 
 client = genai.Client(api_key=GOOG_API_KEY)
 #chat_client = client.chats.create(model=MODEL_ID)
