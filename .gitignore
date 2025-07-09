@@ -16,3 +16,6 @@ docs/
 # Ignore all files in the docs directory
 docs/*
 
+# Environment variables
+.env
+

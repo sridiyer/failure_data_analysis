@@ -1,8 +1,14 @@
 import gradio as gr
 import pandas as pd
 import json
-
+import os
+import sys
 from sqlalchemy import create_engine, text
+from pathlib import Path
+from PIL import Image
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.proc_pipe.gr_handlers import filter_cobble_data_by_date
 
 engine = create_engine('postgresql://bramhesh:Dev%400119%40%21%40@34.72.177.167:5432/experimental_si')
 
@@ -33,14 +39,54 @@ def get_data_from_db(cob_date_from, cob_date_to):
 
 # load tail_braker_fmea
 # load twin_channel_fmea
-
+def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component):
+    print (srch_choice)
+    global anom_data_df
+    if srch_choice == "Date":
+        anom_data_df = filter_cobble_data_by_date(start_date, end_date)
+    selected_columns = ['anomaly_event_id','anomaly_date', 'anomaly_start_time', 'anomaly_end_time', 'summary', 'cause', 'component', 'sub_component', 'failure_mode']
+    ret_df = anom_data_df[selected_columns]
+    
+    """
+    elif srch_choice == "Anomaly ID":
+        ret_df = get_data_from_db(start_date, end_date)
+    elif srch_choice == "Failure Mode":
+        ret_df = get_data_from_db(start_date, end_date)
+    elif srch_choice == "Component":
+        ret_df = get_data_from_db(start_date, end_date)
+    elif srch_choice == "Sub-Component":
+        ret_df = get_data_from_db(start_date, end_date)
+    return ret_df
 # filter FMEA by causes and components
+    """
+    return ret_df
 
+def get_images_from_file (anom_event_id):
+    fn_one = f"anom_{anom_event_id}_plot_one.jpg"
+    fn_two = f"anom_{anom_event_id}_plot_two.jpg"
+    #check if the files exist
+    img_path = Path(__file__).parent.parent / "src" / "data" / "jin_init_plots"
+    img_path_one = img_path / fn_one
+    img_path_two = img_path / fn_two
+
+    if img_path_one.exists():
+        img_one = Image.open(img_path_one)
+    else:
+        img_one = None
+    if img_path_two.exists():
+        img_two = Image.open(img_path_two)
+    else:
+        img_two = None
+    return img_one, img_two
 
 def get_selected_fmea_row (in_df, evt: gr.SelectData):
     global anom_data_df
-    sel_row = anom_data_df.iloc[evt.index[0]]
     
+    sel_row = anom_data_df.iloc[evt.index[0]]
+    anom_event_id = sel_row['anomaly_event_id']
+    # select images file.
+    ret_img_one, ret_img_two = get_images_from_file(anom_event_id)
+
     delay_data = sel_row['delay_summary']
     capa_data = sel_row['capa_summary']
     ret_date = sel_row['anomaly_date']
@@ -60,7 +106,7 @@ def get_selected_fmea_row (in_df, evt: gr.SelectData):
     ret_tags_two = sel_row['tags_set_two']
     ret_tags_two_rationale = sel_row['tags_rationale_two']
     
-    return delay_data, capa_data, ret_equip, ret_summary, ret_fm, ret_component, ret_sub_component, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale
+    return delay_data, capa_data, ret_equip, ret_summary, ret_fm, ret_component, ret_sub_component, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_tags_two, ret_tags_two_rationale, ret_img_one, ret_img_two
 
     
 # ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, 
@@ -74,19 +120,22 @@ def get_selected_fmea_row (in_df, evt: gr.SelectData):
 
             
 def bottom_feedback_bar ():
-    gr.Markdown("## SME Review and Feedback")
-    with gr.Row():
-        rev_text =gr.TextArea(label="SME Review and Feedback", placeholder="This is SME feedback", lines=3)
-    with gr.Row():
-        rev_name = gr.Textbox(label="SME Name", value="Don, Anand, Clay,...", scale=12)
-        gr.Button ("Clear", scale = 4)
-        gr.Button("Submit", scale = 4)
+
+    with gr.Accordion("SME Review and Feedback", open=False):
+        with gr.Row():
+            rev_text =gr.TextArea(label="SME Review and Feedback", placeholder="This is SME feedback", lines=3)
+        with gr.Row():
+            rev_name = gr.Textbox(label="SME Name", value="Don, Anand, Clay,...", scale=12)
+            gr.Button ("Clear", scale = 4)
+            gr.Button("Submit", scale = 4)
     
 
 with gr.Blocks() as demo:
     
     with gr.Accordion("Search Options : By Date, Anomaly ID, Failure Mode, Component, Sub-Component"):
         with gr.Row():
+                srch_choice = gr.Radio(label="Search by", choices=["Date", "Anomaly ID", "Failure Mode", "Component", "Sub-Component"], value="Date", interactive=True)
+        with gr.Row():           
             with gr.Column(scale=8):
                 with gr.Row():
                     start_date = gr.DateTime(label="Start Date", value="2024-03-01", include_time = False, type="string")
@@ -109,7 +158,7 @@ with gr.Blocks() as demo:
         with gr.TabItem("Search Results", id=0):
             gr.Markdown("Search Results")
             sr_res_df = gr.DataFrame()
-        search_button.click(get_data_from_db, inputs=[start_date, end_date], outputs=sr_res_df)
+        search_button.click(handle_search_query, inputs=[srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component], outputs=sr_res_df)
        
 
         with gr.TabItem("Maintenance Data", id=1):
@@ -138,27 +187,33 @@ with gr.Blocks() as demo:
             with gr.Row():
                 ana_recommendations = gr.TextArea(label="Recommendations", value="Recommendations") 
             with gr.Row():
-                ana_tags_list = gr.TextArea(label="Tags of Interest", value="Tag1, Tag2, Tag3")
+                ana_tags_list = gr.Textbox(label="Tags of Interest", value="Tag1, Tag2, Tag3")
             with gr.Row():
                 ana_tags_rationale = gr.TextArea(label="Tags Rationale", value="Tag1, Tag2, Tag3")
             with gr.Row():
-                ana_sec_tags_list = gr.TextArea(label="Secondary Tags of Interest", value="Tag1, Tag2, Tag3")
+                ana_sec_tags_list = gr.Textbox(label="Secondary Tags of Interest", value="Tag1, Tag2, Tag3")
             with gr.Row():
                 ana_sec_tags_rationale = gr.TextArea(label="Secondary Tags Rationale", value="Tag1, Tag2, Tag3")
-        sr_res_df.select(get_selected_fmea_row, inputs=[sr_res_df], outputs=[delay_data, capa_data, ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, ana_cause, ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale])
+        
 
         with gr.TabItem("Data Mining", id=3):
             gr.Markdown("Mine the data for failure modes, associated sensor signatures, trendsand other insights.")
             with gr.Row():
-                add_ana_graph = gr.Image()
+                add_ana_graph_one = gr.Image(label="Tag Set One")
+                add_ana_graph_two = gr.Image(label="Tag Set Two")
             with gr.Row():
                 add_ana_summary = gr.TextArea(label="Data Mining Analysis Summary", value="Additional Analysis Summary")
             with gr.Row():
                 add_ana_tags_list = gr.Textbox(label="Additional Tags", value="Tag1, Tag2, Tag3")
             with gr.Row():
+                add_ana_button = gr.Button("Analyze With Additional Tags")
+            with gr.Row():
                 add_ana_chat   = gr.Chatbot(type="messages")
-                add_ana_textBox = gr.Textbox(label="Additional Analysis", value="Additional Analysis")
-                add_ana_button = gr.Button("Add Additional Analysis")
+            with gr.Row():
+                add_ana_textBox = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
+        
+        sr_res_df.select(get_selected_fmea_row, inputs=[sr_res_df], outputs=[delay_data, capa_data, ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, ana_cause, ana_reason, ana_recommendations, ana_tags_list, 
+                                                                             ana_tags_rationale, ana_sec_tags_list, ana_sec_tags_rationale, add_ana_graph_one, add_ana_graph_two])
         
         with gr.TabItem("FMEA Refinement", id=4):
             gr.Markdown("""Refine the FMEA based on actual failure data - re-evaluate criticality, risk, and other parameters.""")
@@ -169,7 +224,7 @@ with gr.Blocks() as demo:
             with gr.Row():
                 fmea_micro_chat = gr.Chatbot(type="messages")
             with gr.Row():
-                fmea_ma_textBox = gr.Textbox(label="FMEA Micro-Agent", value="FMEA Micro-Agent")
+                fmea_ma_textBox = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
 
         with gr.TabItem("Analyze Alerts", id=5):
             gr.Markdown("""Analyze Alerts : Enter an Alert ID from Spector Platform and
@@ -183,11 +238,15 @@ with gr.Blocks() as demo:
                 alert_summary = gr.TextArea(label="Alert Summary", value="Alert Summary")
             with gr.Row():
                 alert_chat = gr.Chatbot(type="messages")
+            with gr.Row():
+                alert_textBox = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
         
         with gr.TabItem("General QnA", id=6):
             gr.Markdown("General QnA about the ROlling Mill Facility")
             with gr.Row():
                 gen_info_chat = gr.Chatbot(type="messages")
+            with gr.Row():
+                gen_info_textBox = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
         
         with gr.TabItem("HELP", id=7):
             gr.Markdown("## Helpful Information")
