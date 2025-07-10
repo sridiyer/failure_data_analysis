@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.proc_pipe.gr_handlers import filter_cobble_data_by_date
+from src.proc_pipe.gr_handlers import filter_cobble_data_by_date, filter_cobble_data_by_anomaly_id
 
 engine = create_engine('postgresql://bramhesh:Dev%400119%40%21%40@34.72.177.167:5432/experimental_si')
 
@@ -39,11 +39,13 @@ def get_data_from_db(cob_date_from, cob_date_to):
 
 # load tail_braker_fmea
 # load twin_channel_fmea
-def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component):
+def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component, search_anomaly_id):
     print (srch_choice)
     global anom_data_df
     if srch_choice == "Date":
         anom_data_df = filter_cobble_data_by_date(start_date, end_date)
+    elif srch_choice == "Anomaly ID":
+        anom_data_df = filter_cobble_data_by_anomaly_id(search_anomaly_id)
     selected_columns = ['anomaly_event_id','anomaly_date', 'anomaly_start_time', 'anomaly_end_time', 'summary', 'cause', 'component', 'sub_component', 'failure_mode']
     ret_df = anom_data_df[selected_columns]
     
@@ -106,7 +108,7 @@ def get_selected_fmea_row (in_df, evt: gr.SelectData):
     ret_tags_two = sel_row['tags_set_two']
     ret_tags_two_rationale = sel_row['tags_rationale_two']
     
-    return delay_data, capa_data, ret_equip, ret_summary, ret_fm, ret_component, ret_sub_component, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_tags_two, ret_tags_two_rationale, ret_img_one, ret_img_two
+    return ret_start_time, ret_end_time, delay_data, capa_data, ret_equip, ret_summary, ret_fm, ret_component, ret_sub_component, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_tags_two, ret_tags_two_rationale, ret_img_one, ret_img_two
 
     
 # ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, 
@@ -158,7 +160,8 @@ with gr.Blocks() as demo:
         with gr.TabItem("Search Results", id=0):
             gr.Markdown("Search Results")
             sr_res_df = gr.DataFrame()
-        search_button.click(handle_search_query, inputs=[srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component], outputs=sr_res_df)
+        search_button.click(handle_search_query, inputs=[srch_choice, start_date, end_date, search_by_failure_mode, 
+                                                         search_by_component, search_by_sub_component, search_anomaly_id], outputs=sr_res_df)
        
 
         with gr.TabItem("Maintenance Data", id=1):
@@ -212,7 +215,7 @@ with gr.Blocks() as demo:
             with gr.Row():
                 add_ana_textBox = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
         
-        sr_res_df.select(get_selected_fmea_row, inputs=[sr_res_df], outputs=[delay_data, capa_data, ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, ana_cause, ana_reason, ana_recommendations, ana_tags_list, 
+        sr_res_df.select(get_selected_fmea_row, inputs=[sr_res_df], outputs=[mnt_start_time, mnt_end_time, delay_data, capa_data, ana_equipment, ana_summary, ana_fm, ana_comp, ana_sub_comp, ana_cause, ana_reason, ana_recommendations, ana_tags_list, 
                                                                              ana_tags_rationale, ana_sec_tags_list, ana_sec_tags_rationale, add_ana_graph_one, add_ana_graph_two])
         
         with gr.TabItem("FMEA Refinement", id=4):

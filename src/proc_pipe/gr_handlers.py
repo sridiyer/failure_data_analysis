@@ -14,6 +14,10 @@ full_cobble_data_df = pd.read_pickle(cobble_data_path)
 def filter_cobble_data_by_date (start_date, end_date):
     return full_cobble_data_df[(full_cobble_data_df['anomaly_date'] >= start_date) & (full_cobble_data_df['anomaly_date'] <= end_date)]
 
+def filter_cobble_data_by_anomaly_id (anomaly_id):
+    
+    return full_cobble_data_df[full_cobble_data_df['anomaly_event_id'] == int(anomaly_id)]
+
 def filter_fmea_by_cause (fmea_df, cause):
     return fmea_df[fmea_df['Cause'] == cause]
 
