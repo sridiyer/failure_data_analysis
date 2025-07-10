@@ -59,7 +59,7 @@ with gr.Blocks(theme=theme) as demo:
 
     with gr.Tab("Spector Customer Onboarding"):
         with gr.TabItem("Plant Information"):
-            with gr.Accordion("Plant Information (only for testing / demo) - in prod, output will be driven by the Doc Agent"):
+            with gr.Accordion("Info Display (only for testing / demo) - in prod, what gets displayed will be driven by the Doc Agent"):
                 with gr.Row():
                     sel_display = gr.Radio(label="Display Demo", choices=["Dashboard", "Text", "Image", "Spreadsheet", "Plot", "Research"], value="Dashboard")
             
