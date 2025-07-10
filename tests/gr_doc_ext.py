@@ -46,6 +46,10 @@ The primary operational zones of the mill are:
 - **6. Twin Channel and Cooling Bed:** The final handling area that receives the cut-to-length bars from all production lines, brakes their momentum, and discharges them onto a large cooling bed.
 """
 
+img_text = """
+The image shows the PID for the 1st Stage Compressor. The safety margins are specified.
+"""
+
 res_text = """
 Research Agent searching the web for additional information regarding troubleshooting of cobble events due to mechanical issues 
 in the Twin Channel and  Tail Braker Areas.
@@ -76,6 +80,7 @@ with gr.Blocks(theme=theme) as demo:
                             gr.Markdown(ext_text)
                         elif sel_display == "Image":
                             gr.Image(label="Plant Image", value=img_pid)
+                            gr.TextArea(label="Image Summary", value=img_text, lines=10)
                         elif sel_display == "Spreadsheet":
                             gr.Dataframe(label="Plant Equipment", value=comp_data_df)
                         elif sel_display == "Plot":
