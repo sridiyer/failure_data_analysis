@@ -1,4 +1,5 @@
 import gradio as gr 
+from gradio import ChatMessage
 from PIL import Image
 import pandas as pd
 
@@ -55,6 +56,22 @@ Research Agent searching the web for additional information regarding troublesho
 in the Twin Channel and  Tail Braker Areas.
 """
 
+def chat_agent(input_text, chat_history):
+    print ("input_text: ", input_text)
+    print ("chat_history: ", chat_history)
+    respone_1 = ChatMessage(
+        role="assistant",
+        content="This is a test response" 
+    )
+    return  [respone_1]
+
+example_msg = ChatMessage(
+            role="assistant",
+            content="API Error when connecting to weather service.",
+            metadata={"title": "💥 Error using tool 'Weather'"},
+        )
+
+ex_1 = [{"text": "q1"}, {"text": "q2"}, {"text": "q3"}]
 with gr.Blocks(theme=theme) as demo:
 
     with gr.Tab("Spector Customer Onboarding"):
@@ -89,14 +106,22 @@ with gr.Blocks(theme=theme) as demo:
                         else:
                             gr.TextArea(label="Research Results", value=res_text, lines=10)
                 with gr.Column():
-                    doc_chat = gr.Chatbot(label="Doc Agent", type="messages")
-                    doc_input = gr.MultimodalTextbox( sources=["upload", "microphone"], placeholder="Ask me anything about the document", show_label=False,  interactive=True )
+                    doc_chat = gr.Chatbot(label="Doc Agent",  type="messages", examples=ex_1)
+                    doc_chat_input = gr.MultimodalTextbox( sources=["upload", "microphone"], placeholder="Ask me anything about the document", show_label=False,  interactive=True )
+                    doc_chat_input.submit(chat_agent, [doc_chat_input, doc_chat], [doc_chat])
+        
         with gr.TabItem("Maintenance Information"):
-            gr.Textbox(label="Maintenance Information")
+            with gr.Accordion("Info Display (only for testing / demo) - in prod, what gets displayed will be driven by the Doc Agent"):
+                with gr.Row():
+                    sel_display = gr.Radio(label="Display Demo", choices=["Dashboard", "Raw Maintenance Data", "Sepctor Events Format", "Failure Data", "Tags", "FMEA"], value="Dashboard")
+            
 
         with gr.TabItem("Timeseries Data"):
-            gr.Textbox(label="Timeseries Data")
+            with gr.Accordion("Info Display (only for testing / demo) - in prod, what gets displayed will be driven by the Doc Agent"):
+                with gr.Row():
+                    sel_display = gr.Radio(label="Display Demo", choices=["Dashboard", "Raw Timeseries", "Failure Events Related", "Signature Analysis", "Research"], value="Dashboard")
+            
 
 
 demo.queue()
-demo.launch(server_name="0.0.0.0", server_port=8080)
+demo.launch(server_name="0.0.0.0", server_port=8082)
