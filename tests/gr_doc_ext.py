@@ -2,7 +2,7 @@ import gradio as gr
 from gradio import ChatMessage
 from PIL import Image
 import pandas as pd
-
+import os
 import plotly.express as px
 
 """
@@ -25,8 +25,8 @@ comp_data = {
     }
 comp_data_df = pd.DataFrame(comp_data)
 
-img_net = Image.open("/Users/sridhariyer/spector/sp_dev/failure_data_analysis/tests/gr_imgs/img_network.png")
-img_pid = Image.open("/Users/sridhariyer/spector/sp_dev/failure_data_analysis/tests/gr_imgs/cent_pid.png")
+img_net = Image.open(os.path.join(os.path.dirname(__file__), "gr_imgs", "img_network.png"))
+img_pid = Image.open(os.path.join(os.path.dirname(__file__), "gr_imgs", "cent_pid.png"))
 
 def test_spider_chart_hl():
     df = pd.DataFrame(dict(
