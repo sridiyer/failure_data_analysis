@@ -1,7 +1,7 @@
 #from src.llms.prompts.jin_triage_tags_extraction import JINDAL_TRIAGE_TAGS_EXTRACTION_PROMPT
 #from src.llms.prompts.jin_capa_data_prompt import JINDAL_CAPA_TAGS_EXTRACTION_PROMPT
 from src.llms.prompts.jin_triage_delay_only import JINDAL_TRIAGE_TAGS_EXTRACTION_PROMPT
-from src.llms.goog_gemini import invoke_gemini_for_extraction
+from src.llms.goog_gemini import invoke_gemini_for_extraction, get_gemini_response
 
 def extract_jinal_cobble_history_triage_tags(notes1: str, notes2: str) -> dict:
     """
@@ -54,3 +54,13 @@ def extract_jinal_capa_tags(capa_notes1: str) -> dict:
     """
     # invoke the LLM with the prompt.
     return response
+
+def get_gemini_analysis_response(prompt: str, session_type: str) -> str:
+    # signature get_gemini_response(prompt: str, session_type: str) -> str:
+    #print (f"gemini_wrapper: get_gemini_analysis_response: {prompt}")
+    # prompt or query 
+    # if query, assemble the prompt - need history
+
+    gem_response = get_gemini_response(prompt, session_type)
+    
+    return gem_response

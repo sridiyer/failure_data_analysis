@@ -144,7 +144,33 @@ with gr.Blocks() as demo:
                     end_date = gr.DateTime(label="End Date", value="2024-03-31", include_time = False, type="string")
                     search_anomaly_id = gr.Textbox(label="Anomaly ID (88-165)", value="88")
                 with gr.Row():
-                    search_by_failure_mode = gr.Textbox(label="Failure Mode", value="Drive Failure")
+                    search_by_failure_mode = gr.Dropdown(
+                        choices = [
+                                    "Drive System Failure",
+                                    "Incorrect Positioning / Gap Insufficiency",
+                                    "High-Pressure Braking Failure",
+                                    "Incorrect Positioning / Gap Insufficiency High-Pressure Braking Failure",
+                                    "Drive System Failure Roll Closing Failure",
+                                    "Incorrect Positioning / Gap Insufficiency Drive System Failure",
+                                    "Roll Closing Failure Drive System Failure",
+                                    "Roll Closing Failure",
+                                    "High-Pressure Braking Failure Roll Closing Failure",
+                                    "Roll Closing Failure High-Pressure Braking Failure",
+                                    "Pinch Roller Physical Damage",
+                                    "Lubrication System Failure",
+                                    "Drive System Failure Bearing failure",
+                                    "Drive System Failure / Roll Closing Failure",
+                                    "Rotational Mechanism Jam Drive System Failure",
+                                    "High-Pressure Braking Failure Pinch Roller Physical Damage",
+                                    "Guide Roller Misalignment",
+                                    "Rotational Mechanism Jam",
+                                    "High-Pressure Braking Failure, Roll Closing Failure, Incorrect Positioning / Gap Insufficiency",
+                                    "Rotational Mechanism Jam High-Pressure Braking Failure",
+                                    "Rotational Mechanism Jam Roll Closing Failure"
+                                    "Drive System Failure Guide Roller Misalignment"
+                                    ],
+                        value="Drive System Failure",
+                        label="Failure Mode", interactive=True)
                     search_by_component = gr.Textbox(label="Component", value="Twin Channel")
                     search_by_sub_component = gr.Textbox(label="Sub-Component", value="Brake Disc")
             with gr.Column(scale=2):

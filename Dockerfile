@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 8082
 
 # Set the default command to run the specified Python script
-CMD ["python", "tests/gr_doc_ext.py"] 
+CMD ["python", "tmp_app/gr_ingest_demo.py"] 

@@ -1,0 +1,17 @@
+### **1. Dominant Sub-Group: Positioning Control & Feedback Failures**
+
+- **Summary:** This is the most frequent failure pattern, encompassing **8 of the 18 events** (Events: 90, 97, 98, 121, 149, 152, 154, 157). These failures are characterized by the **Twin Channel's rotational mechanism failing to stop at the correct angular "home" position** after a discharge cycle. This is consistently described in operator notes as an **"undershoot"** or **"overshoot"**. The result is that the flap is misaligned for the next incoming bar, leading to a direct collision or an improper discharge that jams the downstream cooling bed.
+- **Core Cause:** The failure originates within the **positioning control loop**. The root causes are primarily electronic or electro-mechanical, including:
+    - **Faulty Position Feedback:** Malfunctioning or failed encoders that provide incorrect position data to the PLC (as explicitly seen in event 152 where encoders were replaced).
+    - **Drive Control Tuning:** Improper drive parameters, where the braking logic is unable to control the flap's inertia at high speeds, leading to an overshoot (as seen in event 157 where reducing cycle speed was the fix).
+    - **Mechanical Linkage Slip:** Looseness or failure in the coupling between the drive and the flap, which causes the physical position to deviate from what the encoder reports.
+
+### **2. Dominant Sub-Group: Mechanical Misalignment & Physical Obstruction**
+
+- **Summary:** This is the second most dominant failure pattern, accounting for **6 of the 18 events** (Events: 92, 101, 102, 103, 104, 105). These failures are caused by a **physical obstruction or an incorrect physical setup of the bar's guide path**. The operator notes are very specific, citing issues like **"SECTION 2 GAP MORE THAN SECTION 1"** and the corrective action being the replacement of **"tonnle panel"** guides. In these cases, the control system is functioning correctly, but it stalls when the drive attempts to move a bar that is physically wedged in the misaligned channel. The term "undershoot" is often used here as a *symptom* of the motor stalling, not as the root cause.
+- **Core Cause:** The failure originates in the **physical structure and alignment of the equipment**. The root causes are purely mechanical, including:
+    - **Incorrect Setup:** Guide panels and channel cavities are improperly adjusted, creating a gap that is too wide or too narrow for the bar.
+    - **Damaged Components:** Guiding components are bent, broken, or damaged, obstructing the bar's path.
+    - **Out-of-Spec Material:** An unusually "wavy" bar that cannot be handled even by a correctly aligned channel (as seen in event 92).
+
+In conclusion, the dominant failures in the Twin Channel are almost evenly split between **failures of the electronic control system to position the equipment correctly** and **failures of the physical mechanical structure to guide the material correctly**.

@@ -1,0 +1,194 @@
+### **Primary Component: Tail Braker**
+
+- **Function:** The Tail Braker's primary function is to receive a bar cut to a specific length from the upstream dividing shear, pull it through, and then brake it to a defined residual speed (VFREN) before discharging it. This controlled braking ensures the bar is correctly positioned for the twin channel and subsequent placement on the cooling bed. The entire braking cycle is automated, initiated by bar presence and controlled by the PLC based on supervisor-set parameters.
+- **Input:** Cut-to-length steel bar from the upstream dividing shear. Control signals and parameters (VFREN, KDEC, SEND) from the area control PLC. Bar presence signal from HMD (Hot Metal Detector).
+- **Output:** Decelerated steel bar transferred to the Twin Channel.
+- **Sensors:** The system relies on a suite of sensors for operation. Material Presence Sensors (B001-B004) detect the incoming bar to start the cycle. Motor Encoders (e.g., M001-B001) provide speed feedback for control. Armature and Field KLIXONS (e.g., M001-S902/S903) and Temperature Thermostats (e.g., M001-S912) provide thermal protection for the motors. Overspeed Switches (e.g., M001-S901) provide mechanical overspeed protection. Flow, Level, and Filter Switches monitor cooling and lubrication systems. Carriage Position Switches (S001, S002) ensure the maintenance carriage is in the correct working position.
+
+**Components of the Tail Braker:**
+
+- **Component:** DC Motors (e.g., JE11A01FRT - M001, M002)
+    - **Function:** To drive the tail braker rolls. Each motor is controlled by its own DC drive which receives a speed reference from the area PLC.
+    - **Sensors:**
+        - **Armature & Field KLIXONS (e.g., M001-S902/S903):** Bimetallic thermal switches embedded in the motor windings. They provide a simple, direct fault signal (dry contact) if the motor overheats, triggering an alarm and motor shutdown.
+        - **Overspeed SWITCH (e.g., M001-S901):** A mechanical switch that trips if the motor exceeds a safe rotational speed, providing a hardwired safety interlock.
+        - **Cooling WATER Temperature Thermostat (e.g., M001-S912):** Monitors the temperature of the motor's cooling water, providing a fault signal if it is too high.
+        - **Cooling Water Flow/Level/Filter Switches (e.g., M001-S914, M001-S915, M001-S913):** Monitor the status of the motor cooling circuit, providing fault signals for low flow, low water level in the trap, or a clogged filter.
+- **Component:** Encoders (e.g., M001-B001)
+    - **Function:** Provides real-time rotational speed feedback of the motor to the DC drive, enabling precise, closed-loop speed control during the pulling and braking phases.
+    - **Sensors:** This component is a sensor itself. It measures the angular position and velocity of the motor shaft.
+- **Component:** Upper and Lower Rolls
+    - **Function:** The upper roll is movable and closes onto the bar, which rests on the fixed lower roll. This action provides the grip needed to pull and brake the bar. The closing force can be standard or high-pressure.
+    - **Sensors:**
+        - **Rolling Closing Pressure Sensors (B011, B012, etc.):** These sensors monitor the pneumatic pressure applied to the closing cylinder, ensuring the correct clamping force is applied to the bar.
+- **Component:** Pneumatic Cylinders and Solenoid Valves (e.g., Y001, Y002, Y011, Y012)
+    - **Function:** Actuate the upper roll's closing and opening. Different solenoid valves are used to apply either standard pressure (Y001/Y002) for pulling or an additional high-pressure command (Y011/Y012) for braking.
+    - **Sensors:** No direct feedback sensors are listed for the cylinder position itself; its state is inferred from the command signal sent to the solenoid valve.
+- **Component:** Tail Braker Shifting Car
+    - **Function:** A hydraulically-powered carriage that can move the two central tail brakers offline for maintenance. Its operation is interlocked to prevent movement if any tail braker motor is running.
+    - **Sensors:**
+        - **Carriage Position Switches (S001, S002):** Proximity switches that detect if the carriage is in the "ON LINE" (working) or "OFF LINE" (maintenance) position. These signals are critical interlocks for enabling tail braker operation.
+- **Component:** Material Presence Sensors (e.g., B001, B002)
+    - **Function:** Detects the head of an incoming bar, which serves as the primary input signal to initiate the tail braker's closing and braking sequence.
+    - **Sensors:** This component is a sensor itself (likely a Hot Metal Detector - HMD). It detects the infrared radiation from the hot bar.
+
+
+
+
+
+### **Primary Component: Twin Channel**
+
+- **Function:** To receive braked bars from the two tail braker lines and discharge them alternately onto the left and right sides of the cooling bed. The discharge is a precisely timed 360-degree rotation of a discharging flap, controlled by a gearbox and pulse generator. It includes a cobble detection system to prevent jams.
+- **Input:** Decelerated steel bar from one of the two Tail Braker lines. Tail detection signal from the tail braker triggers the start of the cycle.
+- **Output:** Cooled steel bar placed onto the movable rake of the cooling bed. A crop signal is sent to the upstream shear if a bar is not properly braked (cobble).
+- **Sensors:** The system's operation is governed by the Encoder (B001, B008) which provides precise position feedback for the discharge flap. Cobble Detectors (B101, B102) at the exit serve as a critical safety sensor, triggering a scrap cut upstream if a jam is detected. Various motor protection sensors (KLIXONS, Thermostats) ensure the health of the drive motors.
+
+The two primary solenoid valves controlling the tail braker's upper roll are:
+
+- **Standard Pressure Solenoid:** Actuated by the `UPPER ROLLER 1A/1B COMMAND - CLOSURE` signal (Electric Code **Y001/Y002**). This valve provides the standard clamping force used to grip and pull the bar at line speed.
+- **High-Pressure Solenoid:** Actuated by the `UPPER ROLLER 1A/1B HIGH PRESSURE COMMAND - CLOSURE` signal (Electric Code **Y011/Y012**). This is an *additional* solenoid valve that, when activated along with the standard one, significantly increases the clamping force on the bar. This high pressure is essential for the braking phase to decelerate the bar without slippage.
+
+### **Sequence of Operations for Tail Braking**
+
+The operation can be broken down into the following distinct steps, beginning as the cut bar exits the upstream dividing shear and approaches the tail braker.
+
+---
+
+### **Step 1: Awaiting and Engaging the Bar (Pulling Phase)**
+
+- **Description:** The tail braker is in a ready state, waiting for the front end of the bar. The motors are already running at a slight overspeed relative to the main rolling line speed to ensure there is a gentle pulling tension on the bar as soon as it is gripped. This prevents buckling and keeps the bar straight.
+- **Material Status:** The bar is traveling at a constant rolling speed (`VLAM`) and is approaching the tail braker entrance.
+- **Component Actions & Control Signals:**
+    - **Sensors:** The **Material Presence Sensor** (e.g., B001) at the tail braker inlet is monitoring for the hot bar.
+    - **Control Logic:** Upon receiving the "bar present" signal from the sensor, the PLC issues the command to close the roll.
+    - **Solenoid Valves:** The standard pressure solenoid is energized (signal **Y001** for line 1A is activated). The high-pressure solenoid (**Y011**) remains de-energized.
+    - **Rolls:** The pneumatic cylinder extends, closing the upper roll onto the bar with standard clamping force.
+    - **Motor:** The motor continues to run at its pre-set overspeed, now gripping the bar and actively pulling it through the unit. The drive's torque limit is at a standard, lower setting sufficient for pulling.
+    
+### **Step 2: Initiating the Braking Cycle (Braking Phase)**
+
+- **Description:** This critical phase begins after the upstream dividing shear has made its final cut and the system has calculated that the tail end of the bar has reached the precise starting point for deceleration. The goal is to slow the bar from its high rolling speed down to a slow, controlled discharge speed.
+- **Material Status:** The bar is initially still moving at rolling speed (`VLAM`). As this step proceeds, its speed rapidly decreases along a defined deceleration ramp (`KDEC`).
+- **Component Actions & Control Signals:**
+    - **Sensors:** There is no direct sensor for this trigger. The PLC uses the "bar tail" signal from an upstream HMD and its knowledge of the bar speed to calculate the exact moment the tail reaches the "Start Brake Position."
+    - **Control Logic:** Once the calculated start-brake position is reached, the PLC initiates the braking sequence.
+    - **Solenoid Valves:** The **High-Pressure Solenoid** is energized (signal **Y011** is activated). This happens *in addition* to the already-energized standard pressure solenoid (Y001). The combination of both valves applies maximum clamping force to the bar.
+    - **Motor:** The motor drive receives a new speed reference, commanding it to ramp down from `VLAM` to the final `VFREN`. The motor's torque limit is increased to its maximum to provide the necessary braking force to decelerate the bar's mass.
+    - **Rolls:** The upper roll is now clamping the bar with maximum force, allowing the motor to brake the bar effectively without slippage.
+
+### **Step 3: Discharging and Releasing the Bar**
+
+- **Description:** The bar has been successfully decelerated to its target residual speed (`VFREN`) and the tail end of the bar has passed completely through the tail braker's rolls. The system must now release the bar to allow it to travel into the twin channel.
+- **Material Status:** The bar is now moving at the slow, constant discharge speed (`VFREN`) and exits the tail braker, entering the twin channel.
+- **Component Actions & Control Signals:**
+    - **Sensors:** The system tracks the bar's position via the motor encoder. The "tail bar leaves the tail braker" event is calculated based on the known bar length and the distance traveled.
+    - **Control Logic:** The PLC issues the command to open the rolls.
+    - **Solenoid Valves:** Both the standard pressure (**Y001**) and high-pressure (**Y011**) solenoid valves are de-energized.
+    - **Rolls:** The pneumatic cylinder retracts due to the spring return, opening the upper roll and releasing the bar.
+    - **Motor:** The motor's task is complete for this bar.
+
+### **Step 4: Resetting for the Next Cycle**
+
+- **Description:** After the bar is released, the tail braker must immediately reset itself to be ready for the next bar from the same line.
+- **Material Status:** The previous bar has cleared the unit. The system is awaiting the next bar.
+- **Component Actions & Control Signals:**
+    - **Control Logic:** The PLC commands the motor back to its initial ready state.
+    - **Motor:** The motor drive receives a command to speed back up to its initial "overspeed and torque limit" state, running slightly faster than the main line in anticipation of the next bar.
+    - **Rolls:** The rolls remain open.
+    - **Solenoid Valves:** Both solenoids remain de-energized until the next bar is detected, at which point the cycle repeats from Step 1.
+    
+---------
+**Components of the Twin Channel:**
+
+- **Component:** AC Motors (e.g., JE11A01CDD - M001 to M008)
+    - **Function:** A set of eight motors drives the two twin channels. They operate intermittently to power the 360° rotation of the discharging flap mechanism via a gearbox.
+    - **Sensors:**
+        - **Armature & Field KLIXONS (e.g., M001-S902/S903):** Thermal switches that provide fault signals on motor over-temperature.
+        - **Overspeed SWITCH (e.g., M001-S901):** Mechanical safety switch to prevent motor runaway.
+        - **Cooling WATER Temperature Thermostat (e.g., M001-S912):** Monitors cooling water temperature.
+- **Component:** Discharging Flap and Support Structure
+    - **Function:** The mechanical arm that, through a full rotation, picks up the bar and deposits it onto the cooling bed. The entire structure is mounted on a common tiltable frame that can be moved offline for maintenance.
+    - **Sensors:** The position of the flap is indirectly monitored and controlled via the encoder on the gearbox drive.
+- **Component:** Pulse Generator (Encoder) (B001, B008)
+    - **Function:** Provides high-resolution position feedback for the discharging flap's 360° rotation, ensuring the flap stops at the correct home position after each cycle and that its movement is precisely controlled.
+    - **Sensors:** This component is a sensor. It measures the angular position of the driving shaft.
+- **Component:** Hot Metal Detectors (HMD) / Cobble Detectors (B101, B102)
+    - **Function:** Located at the exit of the twin channel. They detect if a bar has not been properly braked and is causing a backup.
+    - **Sensors:** This component is a sensor. It detects the infrared signature of a hot bar in an incorrect position and sends a signal to the upstream shear to initiate a scrap cut, preventing a major cobble.
+
+### **Primary Component: Cooling Bed**
+
+- **Function:** To receive hot bars from the twin channel and transport them across its width in a step-by-step or continuous motion, allowing them to cool via natural convection.
+- **Input:** Hot steel bars from the Twin Channel.
+- **Output:** Cooled steel bars at the exit side of the bed.
+- **Sensors:** The bed's cyclic motion is controlled by Position Sensors (S101-S112) that dictate the slow-down and stop phases of the rake movement. A final Bar Presence Sensor (S001) at the exit confirms the presence of bars on the last notch, interlocking with downstream equipment.
+
+**Components of the Cooling Bed:**
+
+- **Component:** Movable Rake (Mobile Frame)
+    - **Function:** The primary transport mechanism of the cooling bed. It operates on eccentrics, lifting the bars, moving them forward one notch, and then lowering them.
+    - **Sensors:** Its movement is directly controlled by the slow-down and stop position sensors.
+- **Component:** AC Motors (JE11A01PWT - M001, M002)
+    - **Function:** Drive the movable rake through its advancing cycle.
+    - **Sensors:**
+        - **Encoder (M001-B001):** Provides speed feedback for the drive.
+        - **Windings Temperature Detection PTC (M001-B6.1,B6.3):** A thermistor that monitors motor winding temperature for thermal overload protection.
+- **Component:** Position Sensors (S101-S112)
+    - **Function:** Proximity switches that define key points in the rake's cycle.
+    - **Sensors:**
+        - **Slow Down Sensors (S101, S111):** Detect when the rake has reached the point where it needs to decelerate to its slow speed.
+        - **Stop Sensors (S102, S112):** Detect when the rake has reached its final "home" position, signaling the end of a step and readiness for the next.
+- **Component:** Shoe Brake (Standing Brake)
+    - **Function:** A pneumatic holding brake that locks the main drive shaft to hold the rake's position securely when stopped.
+    - **Sensors:** The document does not specify a feedback sensor for the brake's position; its status is inferred by the control system based on the command sent to its solenoid valve.
+- **Component:** Bar Presence Sensor (S001)
+    - **Function:** A proximity sensor on the exit side that detects when bars have reached the last notch of the cooling bed.
+    - **Sensors:** This component is a sensor that confirms the presence of material at the end of the cooling process.
+
+### **Primary Component: Hydraulic Unit for Cooling Bed Area (JE11X10CLO)**
+
+- **Function:** A centralized system that provides pressurized hydraulic oil to power actuators within the Cooling Bed area, such as the cylinder for the twin channel support frame.
+- **Input:** Commands from the PLC and local control station.
+- **Output:** Pressurized hydraulic oil.
+- **Sensors:** The unit is monitored by a variety of sensors including pump suction valve position switches (S110-S140), oil tank level sensors (B002, S002), an oil temperature sensor (B001), and a delivery pressure sensor (B201).
+
+**Components of the Hydraulic Unit:**
+
+- **Component:** Main Pumps (M110, M120, M130, M140)
+    - **Function:** Four pumps (three active, one standby) that pressurize the oil from the tank. The system automatically rotates the standby pump based on working hours and brings it online if a working pump fails.
+    - **Sensors:**
+        - **Suction Valve Open Switches (S110, S120, S130, S140):** A switch on each pump's suction valve confirms that the valve is open before the pump is permitted to start, preventing damage.
+- **Component:** Oil Tank
+    - **Function:** The main reservoir for the hydraulic fluid.
+    - **Sensors:**
+        - **Analogic Tank Oil Level Sensor (B002):** Provides a continuous measurement of the oil level.
+        - **Tank Oil Level Switch (S002):** A switch that indicates a minimum-minimum oil level, providing a critical low-level alarm.
+        - **Analogic Oil Temp Control Sensor (B001):** A transducer that continuously measures the oil temperature to control the heaters and cooling water valve.
+- **Component:** Delivery Line
+    - **Function:** The main pipe that delivers pressurized hydraulic fluid to the area's actuators.
+    - **Sensors:**
+        - **Analogic Oil Delivery Pressure Control Sensor (B201):** A transducer that provides continuous pressure feedback, allowing the system to maintain a constant delivery pressure.
+
+### **Primary Component: Tail Braker and Shear Lubrication Unit (JE11Y10CLC)**
+
+- **Function:** A dedicated lubrication system that supplies oil to the gearboxes and other moving parts of the tail brakers and associated shears.
+- **Input:** Commands from the PLC.
+- **Output:** Temperature- and pressure-controlled lubrication oil.
+- **Sensors:** This unit is monitored by oil temperature (B002) and pressure (B003) transducers in the delivery line, as well as level (S410-S413) and pressure (S420) sensors on its safety accumulator.
+
+**Components of the Lubrication Unit:**
+
+- **Component:** Pumps
+    - **Function:** A primary working pump and a stand-by pump supply the unit. The system automatically switches to the standby pump in case of a fault.
+    - **Sensors:** The document does not list direct sensors on the pumps. Their health is inferred from system-level monitoring (pressure, flow, MCC feedback).
+- **Component:** Heat Exchanger and Control Valve (Y002)
+    - **Function:** Cools the oil in the delivery line to maintain the correct operating temperature.
+    - **Sensors:** Its operation is controlled by the **Oil Delivery, Analogic Temp Control** sensor (B002), which measures the temperature of the oil in the delivery line.
+- **Component:** Air-Oil Accumulator
+    - **Function:** A safety device containing a reserve of pressurized oil. In an emergency, it provides lubrication to the machines while the motors are stopping.
+    - **Sensors:**
+        - **Emergency Accumulator - Level Switches (S410-S413):** A series of four switches that provide discrete signals for Low-Low, Low, High, and High-High oil levels within the accumulator tank.
+        - **Emergency Accumulator - Air Pressure Switch (S420):** Monitors the air pressure in the accumulator, ensuring it is sufficient to discharge the oil in an emergency.
+- **Component:** Proportional Valve (Overflow Control Valve - Y001)
+    - **Function:** Installed on the delivery line to discharge excess oil back to the tank, thereby regulating the system's delivery pressure.
+    - **Sensors:** Its position is controlled based on feedback from the **Analogic Oil Delivery Press. Control** sensor (B003), which continuously measures the pressure in the delivery line.

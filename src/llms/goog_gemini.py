@@ -19,7 +19,7 @@ load_dotenv()
 
 # safety filters etc: https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/getting-started/intro_gemini_2_5_pro.ipynb
 
-MODEL_ID = "gemini-2.5-pro-preview-05-06"    
+MODEL_ID = "gemini-2.5-pro"    
 GOOG_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 if not GOOG_API_KEY:
@@ -122,10 +122,12 @@ def invoke_gemini_for_extraction(prompt: str) -> dict:
 
 def get_gemini_response(prompt: str, session_type: str) -> str:
     global chat_client
+    
     if session_type == "New Session":
         chat_client = client.chats.create(model=MODEL_ID,  history=[])
 
     response = chat_client.send_message(prompt)
+    #print (f"gemini_response: {response.text}")
     return response.text
 
 def get_gemini_response_session(chat_session, prompt: str) -> str:

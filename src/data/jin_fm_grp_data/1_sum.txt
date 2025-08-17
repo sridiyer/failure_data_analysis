@@ -1,0 +1,30 @@
+### **Dominant Failure #1: High-Pressure Braking Failure due to Pneumatic System Malfunction**
+
+This is the most frequent and significant failure mode, accounting for the vast majority of the incidents (**Events 93, 94, 124, 125, 126, 127, 128, 137, 142, 143, 153, 159, 160**).
+
+- **Summary of Failure:**
+The core of this failure is the Tail Braker's inability to apply sufficient clamping force during the critical braking phase. The system commands the upper pinch roll to press down with high pressure to securely grip the bar for deceleration. However, a failure in the pneumatic actuation circuit prevents this from happening. As a result, when the drive motor decelerates as commanded, the bar slips between the rollers instead of slowing down. This causes the bar to exit the unit at an uncontrolled, high speed—an event consistently described in operator logs as an **"overshoot"**.
+- **Root Causes & Evidence:**
+The root cause is almost always a malfunction in the high-pressure solenoid valve (referred to as a "DC Valve" in the notes). The specific causes, as detailed in the event logs, are:
+    1. **Contamination:** The most common cause is the valve's spool sticking due to contamination in the pneumatic line. This is explicitly mentioned as **"OIL OR DEBRIS"** (Events 124, 125, 126, 127, 128) or **"DUST"** (Event 153). This contamination prevents the spool from shifting correctly to allow high-pressure air to flow to the cylinder.
+    2. **Mechanical Wear/Sticking:** The valve spool itself can become worn or scored, causing it to stick. Event 142 notes **"SKORING/MARK FOUND IN THE SPOOL"** as the direct cause of a stuck valve.
+- **Symptoms & On-Site Diagnosis:**
+Operators and the control system detect this failure through several key symptoms recorded in the logs:
+    - **Direct Observation:** The primary symptom is the **"OVERSHOOT"** itself, leading to a cobble.
+    - **Pressure Readings:** Logs consistently report **"HIGH PRESSURE NOT ACHIEVED"** or specific low-pressure readings like **"CLOSING PRESSURE DROPPED TO 5.5 BAR"** (Events 124, 125, 126, 127, 144).
+    - **Slow Response Time:** In some cases, the pressure does not fail completely but builds too slowly to be effective. Events 142 and 143 report a **"RESPONSE TIME IS MORE (800 MS)"**, when the normal time is under 300ms.
+- **Consequences:**
+The immediate consequence is a **cobble** downstream of the Tail Braker. This high-speed impact can cause significant secondary damage. In Event 160, the overshoot resulted in a **"MATERIAL HIT AT TWIN CHANNAL"**, which in turn damaged the Twin Channel flappers, compounding the downtime.
+
+### **Secondary Dominant Failure: Bar Slippage due to Upstream Process Variation**
+
+This is a smaller but distinct group of failures where the Tail Braker equipment itself may be functioning correctly, but it fails because of an external, process-related issue (**Events 108, 148**).
+
+- **Summary of Failure:**
+Similar to the primary failure, the end result is an "overshoot" caused by the bar slipping during braking. However, the reason for the slippage is not an internal component fault but an upstream condition that the Tail Braker's standard braking parameters could not handle.
+- **Root Causes & Evidence:**
+The specific process-related causes were different in each case:
+    1. **Incorrect Operational Parameters:** In Event 108, an operator error occurred where a **"'continue pinching' mode was activated at a lower line speed"** with an upstream water box not fully open. This combination was unsuitable and led to insufficient braking force for the conditions.
+    2. **Altered Material Properties:** In Event 148, the operator noted **"RING NOT HEATED AFTER RING CHANGE"**. A cold upstream rolling ring can change the bar's surface finish and dimensions, which reduces the coefficient of friction. The standard high-pressure clamping force was then insufficient to grip this "slicker" bar, causing it to slip.
+- **Key Distinction:**
+The crucial difference is that the root cause lies outside the Tail Braker's immediate health. The equipment is asked to perform its function on a product or under conditions that are outside of its designed operational window. The diagnosis relies heavily on operator observation of the wider process, not just the faulty equipment.
