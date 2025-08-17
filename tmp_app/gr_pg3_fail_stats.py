@@ -10,7 +10,7 @@ from src.proc_pipe.gr_handlers import filter_cobble_data_by_date, filter_cobble_
 global g1_sub_grps_list, g2_sub_grps_list, g3_sub_grps_list
 g1_sub_grps_list = ['Over-Torque', 'Loss of Torque',  'TC Discharge']
 g2_sub_grps_list = ['Pneumatic Failure', 'Upstream Failure', 'Drive Coupling']
-g3_sub_grps_list = ['Position Control Error', 'Mechanical Onstruction', 'Fatigue / Wear-out']
+g3_sub_grps_list = ['Position Control Error', 'Mechanical Obstruction', 'Fatigue / Wear-out']
 
 
 # 3 group summary, 3 group-sub-groups
