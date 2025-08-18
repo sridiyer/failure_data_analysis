@@ -14,8 +14,10 @@ global ct_anom_id_list
 ct_anom_id_list = []
 
 global tag_img1
-#img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_ana_1.png"
-img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_init_plots" / "anom_90_plot_one.jpg"
+img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_ana_1.png"
+img_path2 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_ana_2.png"
+img_path3 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_comp_3.png"
+#img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_init_plots" / "anom_90_plot_one.jpg"
 print(img_path1)
 tag_img1 = Image.open(img_path1)
 
@@ -273,8 +275,9 @@ with gr.Blocks() as demo:
                     tag_img2 = gr.Image(label="Tag 2")
                     
                 with gr.TabItem("Signature Analysis"):
-                    x_tag_img1 = gr.Image(label="Failure Modes", type="filepath", value="/Users/sridhariyer/spector/sp_dev/failure_data_analysis/src/data/jin_fm_grp_plots/fm_ana_1.png")
-                    x_tag_img2 = gr.Image(label="Failure Modes", type="filepath", value="/Users/sridhariyer/spector/sp_dev/failure_data_analysis/src/data/jin_fm_grp_plots/fm_ana_2.png")
+                    x_tag_img1 = gr.Image(label="Failure Modes", type="filepath", value=img_path1)
+                    x_tag_img2 = gr.Image(label="Failure Modes", type="filepath", value=img_path2)
+                    x_tag_img3 = gr.Image(label="Components Failure", type="filepath", value=img_path3)
                     t13 = gr.Textbox(label=None, container=False, value="Hello from tag signature")
                 
                 # event handlers
