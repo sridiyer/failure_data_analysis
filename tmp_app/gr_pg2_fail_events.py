@@ -149,6 +149,7 @@ def get_selected_btn_data (btn_name):
 
     delay_data = sel_row['delay_summary']
     capa_data = sel_row['capa_summary']
+    
     ret_date = sel_row['anomaly_date']
     ret_start_time = sel_row['anomaly_start_time']
     ret_end_time = sel_row['anomaly_end_time']
@@ -166,7 +167,9 @@ def get_selected_btn_data (btn_name):
     ret_tags_two = sel_row['tags_set_two']
     ret_tags_two_rationale = sel_row['tags_rationale_two']
     
-    return b0_label, b1_label, b2_label, b3_label, b4_label, ret_start_time, ret_end_time, delay_data, ret_equip, ret_summary, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_img_one, ret_img_two
+    
+    
+    return b0_label, b1_label, b2_label, b3_label, b4_label, ret_start_time, ret_end_time, delay_data, ret_equip, ret_summary, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_img_one, ret_img_two, ret_fm, ret_component, ret_sub_component
     
     #return ret_start_time, ret_end_time, delay_data, capa_data, ret_equip, ret_summary, ret_fm, ret_component, ret_sub_component, ret_cause, ret_reasoning, ret_recommendation, ret_tags_one, ret_tags_one_rationale, ret_tags_two, ret_tags_two_rationale, ret_img_one, ret_img_two
 
@@ -258,6 +261,10 @@ with gr.Blocks() as demo:
                             mnt_start_time = gr.Textbox(label="Anomaly Start Time", value="2024-03-01 10:00:00")
                             mnt_end_time = gr.Textbox(label="Anomaly End Time", value="2024-03-01 10:20:00")
                         delay_data = gr.TextArea (label="Maintenance Data", value="Delay Data Summary", lines=3, interactive=True)
+                        ana_tags_list = gr.TextArea(label="Tags of Interest", value="Tag1, Tag2, Tag3", lines=3,  interactive=True)
+                    
+                        ana_tags_rationale = gr.TextArea(label="Tags Rationale", value="Tag1, Tag2, Tag3", lines=5, interactive=True)
+                        gr.Markdown(f'### Additional Information')
                         ana_equip = gr.TextArea(label="Equipment", value="Cause", lines=3, interactive=True)
                         ana_summary = gr.TextArea(label="Summary", value="Cause", lines=3, interactive=True)
                         ana_cause = gr.TextArea(label="Cause", value="Cause", lines=3, interactive=True)
@@ -266,15 +273,18 @@ with gr.Blocks() as demo:
                     
                         ana_recommendations = gr.TextArea(label="Recommendations", value="Recommendations", lines=3, interactive=True) 
                     
-                        ana_tags_list = gr.Textbox(label="Tags of Interest", value="Tag1, Tag2, Tag3",  interactive=True)
-                    
-                        ana_tags_rationale = gr.TextArea(label="Tags Rationale", value="Tag1, Tag2, Tag3", lines=3, interactive=True)
+                        
                 
                 with gr.TabItem("Tags"):
                     tag_img1 = gr.Image(label="Tag 1")
                     tag_img2 = gr.Image(label="Tag 2")
                     
-                with gr.TabItem("Signature Analysis"):
+                with gr.TabItem("FMEA Alignment"):
+                    x_fm = gr.Textbox(label="Failure Mode", value="Failure Mode")
+                    x_f_comp = gr.Textbox(label="Component", value="Component")
+                    x_f_sub_comp = gr.Textbox(label="Sub-Component", value="Sub-Component")
+                    gr.Markdown(f'### Number of Actual Failures by Failure Modes')
+                    
                     x_tag_img1 = gr.Image(label="Failure Modes", type="filepath", value=img_path1)
                     x_tag_img2 = gr.Image(label="Failure Modes", type="filepath", value=img_path2)
                     x_tag_img3 = gr.Image(label="Components Failure", type="filepath", value=img_path3)
@@ -288,19 +298,24 @@ with gr.Blocks() as demo:
                                                                   ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
                 b_0.click(get_selected_btn_data, inputs=[b_0], outputs=[b_0, b_1, b_2, b_3, b_4, mnt_start_time, mnt_end_time, delay_data, 
                                                                         ana_equip, ana_summary, ana_cause, 
-                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
+                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2,
+                                                                        x_fm, x_f_comp, x_f_sub_comp])
                 b_1.click(get_selected_btn_data, inputs=[b_1], outputs=[b_0, b_1, b_2, b_3, b_4, mnt_start_time, mnt_end_time, delay_data, 
                                                                         ana_equip, ana_summary, ana_cause, 
-                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
+                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2,
+                                                                        x_fm, x_f_comp, x_f_sub_comp])
                 b_2.click(get_selected_btn_data, inputs=[b_2], outputs=[b_0, b_1, b_2, b_3, b_4, mnt_start_time, mnt_end_time, delay_data, 
                                                                         ana_equip, ana_summary, ana_cause, 
-                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
+                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2,
+                                                                        x_fm, x_f_comp, x_f_sub_comp])
                 b_3.click(get_selected_btn_data, inputs=[b_3], outputs=[b_0, b_1, b_2, b_3, b_4, mnt_start_time, mnt_end_time, delay_data, 
                                                                         ana_equip, ana_summary, ana_cause, 
-                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
+                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2,
+                                                                        x_fm, x_f_comp, x_f_sub_comp])
                 b_4.click(get_selected_btn_data, inputs=[b_4], outputs=[b_0, b_1, b_2, b_3, b_4, mnt_start_time, mnt_end_time, delay_data, 
                                                                         ana_equip, ana_summary, ana_cause, 
-                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2])
+                                                                        ana_reason, ana_recommendations, ana_tags_list, ana_tags_rationale, tag_img1, tag_img2,
+                                                                        x_fm, x_f_comp, x_f_sub_comp])
                     
             
         with gr.Column(scale=2):

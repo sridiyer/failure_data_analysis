@@ -163,17 +163,21 @@ with gr.Blocks() as demo:
                         with gr.Column(scale=4, min_width=200):
                             gr.Markdown("### Failure Sub Groups")
                             sg_anom_ids = gr.Textbox(label="Anomaly Event IDs", value="", interactive=False)
+                            sg_component = gr.Textbox(label="Components", value="Comp + Sub-Comp",  interactive=False)
+                            sg_tags_list = gr.TextArea(label="Tags of Interest", value="Tag1, Tag2, Tag3", lines=3, interactive=False)
+                            sg_tags_rationale = gr.TextArea(label="Tags Rationale", value="Tag1, Tag2, Tag3", lines=3, interactive=False)
+                            
+                            sg_similarity = gr.TextArea(label="Similarity", value="Similarity Analysis", lines=3, interactive=False) 
+                            sg_dissimilarity = gr.TextArea(label="Dissimilarity", value="Similarity Analysis", lines=3, interactive=False) 
                             sg_equip = gr.TextArea(label="Equipment", value="Cause", lines=3, interactive=True)
                             sg_summary = gr.TextArea(label="Summary", value="Cause", lines=3, interactive=True)
                             sg_cause = gr.TextArea(label="Cause", value="Cause", lines=3, interactive=False)
                     
                             sg_reason = gr.TextArea(label="Reasoning", value="Analysis Reasoning", lines=3, interactive=False)
-                            sg_similarity = gr.TextArea(label="Similarity", value="Similarity Analysis", lines=3, interactive=False) 
-                            sg_dissimilarity = gr.TextArea(label="Dissimilarity", value="Similarity Analysis", lines=3, interactive=False) 
-                            sg_component = gr.Textbox(label="Components", value="Comp + Sub-Comp",  interactive=False)
-                            sg_tags_list = gr.Textbox(label="Tags of Interest", value="Tag1, Tag2, Tag3",  interactive=False)
+                            
+                            
                     
-                            sg_tags_rationale = gr.TextArea(label="Tags Rationale", value="Tag1, Tag2, Tag3", lines=3, interactive=False)
+                            
     # add event handler
             g_0.click(grp_btn_click_handler, inputs=[g_0], outputs=[g_equip, g_0, g_1, g_2, sg_0, sg_1, sg_2, sg_anom_ids, sg_equip, sg_summary, sg_cause, sg_reason, sg_similarity, sg_dissimilarity, sg_component, sg_tags_list, sg_tags_rationale])
             g_1.click(grp_btn_click_handler, inputs=[g_1], outputs=[g_equip, g_0, g_1, g_2, sg_0, sg_1, sg_2, sg_anom_ids, sg_equip, sg_summary, sg_cause, sg_reason, sg_similarity, sg_dissimilarity, sg_component, sg_tags_list, sg_tags_rationale])
