@@ -1,11 +1,15 @@
 import gradio as gr
 from pathlib import Path
+from gradio import ChatMessage
 import os
 import sys
 import pandas as pd
 import pickle
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.proc_pipe.gr_handlers import filter_cobble_data_by_date, filter_cobble_data_by_anomaly_id
+from tmp_app.jin_shell_demo_prompt import JIN_SHELL_GROUP_PROMPT
+from src.llms.gemini_wrapper import get_gemini_analysis_response
+
 
 global g1_sub_grps_list, g2_sub_grps_list, g3_sub_grps_list
 g1_sub_grps_list = ['Over-Torque', 'Loss of Torque',  'TC Discharge']
@@ -23,6 +27,12 @@ g1_summary = Path(data_path / "0_sum.txt").read_text()
 g2_summary = Path(data_path / "1_sum.txt").read_text()
 g3_summary = Path(data_path / "2_sum.txt").read_text()
 
+global gemini_session_type
+gemini_session_type = "New Session"
+
+global current_fail_group_data
+current_fail_group_data = g1_summary
+
 global g1_sub_data_df, g2_sub_data_df, g3_sub_data_df
 g1_sub_data_df = pd.read_pickle(data_path / "drive_sys_subgroups.pkl")
 g2_sub_data_df = pd.read_pickle(data_path / "high_pressure_subgroups.pkl")
@@ -31,6 +41,9 @@ g3_sub_data_df = pd.read_pickle(data_path / "position_gap_subgroups.pkl")
 def get_selected_group_data (btn_name):
     global ct_anom_selected_df
     global ct_anom_id_list
+    global current_fail_group_data
+    global g1_summary, g2_summary, g3_summary
+
     
     btn_index = int(btn_name.split("_")[1].strip())
     
@@ -49,11 +62,14 @@ def get_selected_group_data (btn_name):
     # need to set sub-group buttons also.
     if btn_index == 0:
         b0_label = gr.Button(variant="primary")
+        current_fail_group_data = g1_summary
         #set subgroup buttons
     elif btn_index == 1:
         b1_label = gr.Button(variant="primary")
+        current_fail_group_data = g2_summary
     elif btn_index == 2:
         b2_label = gr.Button(variant="primary")
+        current_fail_group_data = g3_summary
    
 
     return b0_label, b1_label, b2_label
@@ -127,6 +143,27 @@ def sg_btn_click_handler(btn_name):
     return sg_0_label, sg_1_label, sg_2_label, sel_row['Group_Members'], sel_row['Equipment_Details'],  sel_row['Summary'], sel_row['Causes'], sel_row['reason'], sel_row['Primary_Similarities'], sel_row['Primary_Dissimilarities'], sel_row['component'] + " - " +sel_row['sub_component'], sel_row['tags_set_one'], sel_row['tags_rationale_one']
 
 
+def get_gemini_analysis_handler (query_text, history):
+    global gemini_session_type
+    global current_fail_group_data
+    
+    if gemini_session_type == "New Session":
+        gemini_session_type = "Old"
+        req_prompt = JIN_SHELL_GROUP_PROMPT.replace("xxx_failure_group_notes_xxx", str(current_fail_group_data))
+        req_prompt = req_prompt + "\n\n <USER_QUERY>" + query_text + "</USER_QUERY>"
+        goog_response = get_gemini_analysis_response(req_prompt, "New Session")
+        #print (goog_response)
+        #print ("New session and flipped")
+    else:
+        nxt_prompt = "<USER_QUERY>" + query_text + "</USER_QUERY>"
+        goog_response = get_gemini_analysis_response(nxt_prompt, "old")
+        #print ("Old session")
+    #print (history)
+    usr_qry = ChatMessage(role="user", content=query_text)
+    response = ChatMessage(role="assistant", content=goog_response)
+    history.append(usr_qry)
+    history.append(response)
+    return history, None
 
     # baaed on main button (or another gloabl variable) get the name of the data file.
 
@@ -188,7 +225,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             cb1 = gr.Chatbot(label="Reliability Agent", type="messages")
             cb2_query = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
-            #cb2_query.submit(get_gemini_analysis_handler, inputs=[cb2_query, cb1], outputs=[cb1, cb2_query])
+            cb2_query.submit(get_gemini_analysis_handler, inputs=[cb2_query, cb1], outputs=[cb1, cb2_query])
     
     demo.load()
 
