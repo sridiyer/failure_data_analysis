@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.proc_pipe.gr_handlers import filter_cobble_data_by_date, filter_cobble_data_by_anomaly_id
 
 from src.llms.gemini_wrapper import get_gemini_analysis_response
+from tmp_app.jin_shell_demo_prompt import JIN_SHELL_DEMO_PROMPT
 
 global ct_anom_selected_df
 global ct_anom_id_list 
@@ -23,6 +24,9 @@ tag_img1 = Image.open(img_path1)
 
 global gemini_session_type
 gemini_session_type = "New Session"
+
+# context dictrionary
+global current_failure_event_dict
 
 def calc_return_list (srch_res_df):
     global ct_anom_id_list
@@ -59,6 +63,7 @@ def get_images_from_file (anom_event_id):
 def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mode, search_by_component, search_by_sub_component, search_anomaly_id):
     
     global ct_anom_selected_df
+    global current_failure_event_dict
     if srch_choice == "Date":
         ret_df = filter_cobble_data_by_date(start_date, end_date)
     elif srch_choice == "Anomaly ID":
@@ -87,6 +92,7 @@ def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mo
 
     # get the first row of the df
     sel_row = ret_df.iloc[0]
+    current_failure_event_dict = sel_row.to_dict()
     anom_event_id = sel_row['anomaly_event_id']
     # select images file.
     ret_img_one, ret_img_two = get_images_from_file(anom_event_id)
@@ -122,11 +128,13 @@ def handle_search_query (srch_choice, start_date, end_date, search_by_failure_mo
 def get_selected_btn_data (btn_name):
     global ct_anom_selected_df
     global ct_anom_id_list
+    global current_failure_event_dict
     
     anom_id = int(btn_name.split("-")[0].strip())
     btn_index = ct_anom_id_list.index(anom_id)
     
     sel_row = ct_anom_selected_df.iloc[btn_index]
+    current_failure_event_dict = sel_row.to_dict()
     anom_event_id = sel_row['anomaly_event_id']
     # select images file.
     ret_img_one, ret_img_two = get_images_from_file(anom_event_id)
@@ -175,19 +183,18 @@ def get_selected_btn_data (btn_name):
 
 def get_gemini_analysis_handler (query_text, history):
     global gemini_session_type
-    GOOG_MED_PROMPT = """
-    You are an expert industrial engineer with expertise in analyzing
-    industrial equipment and systems.
-    """
+    global current_failure_event_dict
+    
     if gemini_session_type == "New Session":
         gemini_session_type = "Old"
-        prompt = GOOG_MED_PROMPT + "\n\n <USER_QUERY>" + query_text + "</USER_QUERY>"
-        goog_response = get_gemini_analysis_response(prompt, "New Session")
+        req_prompt = JIN_SHELL_DEMO_PROMPT.replace("xxx_failure_events_notes_xxx", str(current_failure_event_dict))
+        req_prompt = req_prompt + "\n\n <USER_QUERY>" + query_text + "</USER_QUERY>"
+        goog_response = get_gemini_analysis_response(req_prompt, "New Session")
         #print (goog_response)
         #print ("New session and flipped")
     else:
-        prompt = "<USER_QUERY>" + query_text + "</USER_QUERY>"
-        goog_response = get_gemini_analysis_response(prompt, "old")
+        nxt_prompt = "<USER_QUERY>" + query_text + "</USER_QUERY>"
+        goog_response = get_gemini_analysis_response(nxt_prompt, "old")
         #print ("Old session")
     #print (history)
     usr_qry = ChatMessage(role="user", content=query_text)
