@@ -18,8 +18,11 @@ global tag_img1
 img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_ana_1.png"
 img_path2 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_ana_2.png"
 img_path3 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "fm_comp_3.png"
+
+img_path4 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "A_103_TB21A_ClsPressure.jpg"
+img_path5 = Path(__file__).parent.parent / "src" / "data" / "jin_fm_grp_plots" / "A_103_TB2_1A_ActualTorquePct.jpg"
 #img_path1 = Path(__file__).parent.parent / "src" / "data" / "jin_init_plots" / "anom_90_plot_one.jpg"
-print(img_path1)
+
 tag_img1 = Image.open(img_path1)
 
 global gemini_session_type
@@ -290,12 +293,18 @@ with gr.Blocks() as demo:
                     x_fm = gr.Textbox(label="Failure Mode", value="Failure Mode")
                     x_f_comp = gr.Textbox(label="Component", value="Component")
                     x_f_sub_comp = gr.Textbox(label="Sub-Component", value="Sub-Component")
+                    
+                    gr.Markdown(f'### Tag Analysis')
+                    
+                    x_tag_img4 = gr.Image(label="Failure Modes", type="filepath", value=img_path4)
+                    x_tag_img5 = gr.Image(label="Failure Modes", type="filepath", value=img_path5)
+
                     gr.Markdown(f'### Number of Actual Failures by Failure Modes')
                     
                     x_tag_img1 = gr.Image(label="Failure Modes", type="filepath", value=img_path1)
                     x_tag_img2 = gr.Image(label="Failure Modes", type="filepath", value=img_path2)
                     x_tag_img3 = gr.Image(label="Components Failure", type="filepath", value=img_path3)
-                    t13 = gr.Textbox(label=None, container=False, value="Hello from tag signature")
+                    
                 
                 # event handlers
                 search_button.click(handle_search_query, inputs=[srch_choice, start_date, end_date, search_by_failure_mode, 
@@ -326,6 +335,7 @@ with gr.Blocks() as demo:
                     
             
         with gr.Column(scale=2):
+            
             cb1 = gr.Chatbot(label="Reliability Agent", type="messages")
             cb2_query = gr.Textbox(show_label=False, placeholder="Type your message here...", submit_btn="Send")
             cb2_query.submit(get_gemini_analysis_handler, inputs=[cb2_query, cb1], outputs=[cb1, cb2_query])

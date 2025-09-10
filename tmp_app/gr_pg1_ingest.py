@@ -27,7 +27,7 @@ with gr.Blocks() as demo:
                 file_count="multiple" # or "single"
             )
         
-        
+            # show a hidden dataframe with the data.
             gr.Markdown("### Connect Historical Time Series Data")
             con_type = gr.Dropdown(
                 label="Select Connection Type",
