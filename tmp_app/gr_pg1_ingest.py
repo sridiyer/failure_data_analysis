@@ -16,7 +16,10 @@ with gr.Blocks() as demo:
         t6 = gr.Textbox(label=None, value="Hello from Page 6")
     """   
     demo.load()
-    gr.Markdown('### ML Model Training Assistant')
+    
+    gr.Markdown("""
+        ![](file/spector_logo.jpg) 
+        """)
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Maintenance Data")
@@ -48,4 +51,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=["/"])

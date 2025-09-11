@@ -175,6 +175,9 @@ def get_gemini_analysis_handler (query_text, history):
     pass
 with gr.Blocks() as demo:
     # add tabs - groups and subgroups
+    gr.Markdown("""
+        ### Spector.AI ML Model Development Assistant
+        """)
     
     with gr.Row():
         with gr.Column():
